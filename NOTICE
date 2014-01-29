@@ -1,0 +1,10 @@
+Copyright 2013 52°North Initiative for Geospatial Open Source Software GmbH
+
+Licensed under GNU General Public License, Version 2.0
+
+This project includes: 
+  Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
+  Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
+  SLF4J API Module under MIT License
+  Weather Data Collector under Apache License 2.0
+
