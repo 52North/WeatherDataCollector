@@ -24,7 +24,7 @@
 
 package org.n52.sensorweb.wdc;
 
-public interface Parser {
+public interface DataCollector {
     
     enum ParsingResult {
         SUCCESSFUL, ERROR

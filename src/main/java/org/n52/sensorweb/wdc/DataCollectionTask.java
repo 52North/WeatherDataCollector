@@ -29,23 +29,23 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ParserTask extends TimerTask {
+public class DataCollectionTask extends TimerTask {
 
-    private static Logger LOG = LoggerFactory.getLogger(ParserTask.class);
+    private static Logger LOG = LoggerFactory.getLogger(DataCollectionTask.class);
 
-    private final Parser parser;
+    private final DataCollector dataCollector;
 
-    public ParserTask(final Parser checkerP) {
-        parser = checkerP;
+    public DataCollectionTask(final DataCollector checkerP) {
+        dataCollector = checkerP;
     }
 
     @Override
     public void run() {
-        LOG.info("*** Run parser {}", parser);
+        LOG.info("*** Run dataCollector {}", dataCollector);
 
-        parser.parse();
+        dataCollector.parse();
 
-        LOG.info("*** Ran parser. Next run in '{}' minutes.",parser.getParseIntervalMillis()/60000);
+        LOG.info("*** Ran dataCollector. Next run in '{}' minutes.",dataCollector.getParseIntervalMillis()/60000);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ParserTask extends TimerTask {
 	@Override
 	public String toString()
 	{
-		return String.format("ParserTask [parser=%s]", parser);
+		return String.format("DataCollectionTask [dataCollector=%s]", dataCollector);
 	}
 
 }

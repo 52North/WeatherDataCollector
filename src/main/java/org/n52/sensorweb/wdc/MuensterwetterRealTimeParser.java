@@ -41,7 +41,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MuensterwetterRealTimeParser implements Parser {
+public class MuensterwetterRealTimeParser implements DataCollector {
 	
 	/**
 	 * 
