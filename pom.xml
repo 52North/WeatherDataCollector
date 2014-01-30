@@ -8,20 +8,18 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.n52.sensorweb.wdc</groupId>
-	<artifactId>weather-data-collector-ms-kli</artifactId>
+	<artifactId>weather-data-collector</artifactId>
 	<packaging>jar</packaging>
 	<version>0.1-SNAPSHOT</version>
 	<name>Weather Data Collector</name>
 	<url>http://52north.github.io/WeatherDataCollector/</url>
 	<inceptionYear>2013</inceptionYear>
 	<description>TODO:
-- clean POM.xml
-- check result of mvn clean package (is it executable?)
-- add license
-- init git
-- add README.md
-- add CONTRIBUTE.md
-- push to github</description>
+		- clean POM.xml
+		- check result of mvn clean package (is it executable?)
+		- add README.md
+		- add CONTRIBUTE.md
+	</description>
 	<issueManagement>
 		<system>Github issues</system>
 		<url>https://github.com/52North/WeatherDataCollector/issues/</url>
