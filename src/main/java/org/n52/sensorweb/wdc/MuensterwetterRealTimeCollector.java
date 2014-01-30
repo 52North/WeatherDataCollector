@@ -88,6 +88,10 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
     
     private static final String DATA_LAST_TIME= "DATA_last_time";
 
+	private static final String OUTPUT_FOLDER = "OUTPUT_folder";
+	
+	private static final String LAST_TIME_FILE_FOLDER = "LAST_TIME_FILE_folder";
+
     private static Logger LOG = LoggerFactory.getLogger(MuensterwetterRealTimeCollector.class);
     
     protected URL dataUrl;
@@ -140,7 +144,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	private void storeLastTime(final Date time)
 	{
 		try (
-				FileWriter fw = new FileWriter(LAST_TIME_FILE);
+				FileWriter fw = new FileWriter(getLastTimeFile());
 				BufferedWriter bw = new BufferedWriter(fw);
 				){
 			bw.write(parsingSdf.format(time));
@@ -150,12 +154,16 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		}
 	}
 
+	private String getLastTimeFile() {
+		return props.getProperty(LAST_TIME_FILE_FOLDER, "." + File.separatorChar) + LAST_TIME_FILE;
+	}
+
 	private Date getLastTimeOfMeasurement()
 	{
 		String lastTimestamp = "";
 		// get last record from data file
 		try (
-				FileReader fr = new FileReader(LAST_TIME_FILE);
+				FileReader fr = new FileReader(getLastTimeFile());
 				BufferedReader br = new BufferedReader(fr);
 				){
 			lastTimestamp = br.readLine();
@@ -238,7 +246,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	{
 		final String fileNameDatePart = new SimpleDateFormat(props.getProperty(DATE_FORMAT_data_file_extension)).format(date);
 		final String userDefinedPrefix = props.getProperty(OUTPUT_FILENAME, "prefix_not_defined");
-		final String fileName = userDefinedPrefix + "_" + fileNameDatePart + ".csv";
+		final String userDefinePath = props.getProperty(OUTPUT_FOLDER, "." + File.separatorChar);
+		final String fileName = userDefinePath + userDefinedPrefix + "_" + fileNameDatePart + ".csv";
 		return fileName;
 	}
 
