@@ -149,8 +149,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 				){
 			bw.write(parsingSdf.format(time));
 		} catch (final IOException e) {
-			// TODO Auto-generated catch block generated on 25.11.2013 around 12:13:28
-			LOG.error("Exception thrown: {}", e.getMessage(), e);
+			LOG.error("Could not save timestamp '{}' of last data set to file '{}'. Switch log level to debug to see the exception.", parsingSdf.format(time),LAST_TIME_FILE);
+			LOG.debug("Exception thrown!",e);
 		}
 	}
 
@@ -168,11 +168,13 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 				){
 			lastTimestamp = br.readLine();
 		} catch (final FileNotFoundException e1) {
-			// TODO Auto-generated catch block generated on 25.11.2013 around 11:46:42
-			LOG.error("Exception thrown: {}", e1.getMessage(), e1);
+			LOG.info("File '{}' could not be found. A new file will be created after successful download of weather data.",LAST_TIME_FILE);
 		} catch (final IOException e1) {
-			// TODO Auto-generated catch block generated on 25.11.2013 around 11:46:42
 			LOG.error("Exception thrown: {}", e1.getMessage(), e1);
+		}
+		if (lastTimestamp == null || lastTimestamp.isEmpty()) {
+			 // this might result in a bug when dealing with data from before 1970-01-01
+			return new Date(0);
 		}
 		// get date from last line
 		Date lastTime;
@@ -184,7 +186,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 					lastTimestamp,
 					e.getMessage());
 			LOG.debug("Exception", e);
-			lastTime = new Date(0); // this might result in a bug when dealing with data from before 1970-01-01
+			 // this might result in a bug when dealing with data from before 1970-01-01
+			lastTime = new Date(0);
 		}
 		return lastTime;
 	}
