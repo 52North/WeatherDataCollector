@@ -24,8 +24,13 @@
 
 package org.n52.sensorweb.wdc;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
@@ -40,16 +45,20 @@ public class MuensterwetterCollector {
 
 	private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
-	private static final String CONFIG_FILE = "/config.properties";
-
 	private static final long delay = 1000;
+
+	private static final String EXTERNAL_FILE_PATH = System.getProperty("user.home") + File.separator + ".WeatherDataCollector" + File.separator;
+
+	private static final String FILE_NAME = "config.properties";
+
+	private static final String INTERNAL_FILE_PATH = "/";
 
     private static Logger LOG = LoggerFactory.getLogger(MuensterwetterCollector.class);
 
-    public void init(){
-        final InputStream configStream = getClass().getResourceAsStream(CONFIG_FILE);
+	private final Properties props = new Properties();
 
-        final Properties props = loadProperties(configStream);
+    public void init(){
+        loadProperties();
 
         final Timer timer = new Timer("52north-timer");
         timer.scheduleAtFixedRate(new DataCollectionTask(new MuensterwetterRealTimeCollector(props)),
@@ -72,14 +81,56 @@ public class MuensterwetterCollector {
 		}
 	}
 
-    private Properties loadProperties(final InputStream configStream) {
-        final Properties p = new Properties();
-        try {
-            p.load(configStream);
-        } catch (final IOException e) {
-            LOG.error("Load properties failed");
-        }
-        return p;
+    private void loadProperties() {
+    	
+    	try {
+			InputStream is;
+			String filePath = EXTERNAL_FILE_PATH + FILE_NAME;
+			final File file = new File(filePath);
+			if (!file.exists()) {
+				LOG.info("Load default settings from jar file");
+				filePath = INTERNAL_FILE_PATH + FILE_NAME;
+				is = getClass().getResourceAsStream(filePath);
+			} else if (!file.canRead()) {
+				LOG.warn("Could not load settings.");
+				LOG.warn("No reading permissions for " + file);
+				LOG.info("Load default settings from jar file");
+				filePath = INTERNAL_FILE_PATH + FILE_NAME;
+				is = getClass().getResourceAsStream(filePath);
+			} else {		
+				LOG.info("Load settings from " + file);
+				is = new FileInputStream(file);
+			}
+			 
+			props .load(is);     
+		} catch (final FileNotFoundException e) {
+			LOG.error("WeatherDataCollector settings not found.", e);
+			System.exit(1);
+		} catch (final IOException e) {
+			LOG.error("WeatherDataCollector settings not readable.", e);
+			System.exit(1);
+		}
+    	// try storing properties in user.home
+    	final File folder = new File(EXTERNAL_FILE_PATH);
+		if (!folder.exists()) {
+			
+			final boolean successful = folder.mkdir();	
+			if (!successful) {
+				LOG.warn("WeatherDataCollector settings could not be saved.");
+				LOG.warn("No writing permissions at " + folder);
+				return;
+			} 
+		}
+		
+		final File file = new File(EXTERNAL_FILE_PATH + FILE_NAME);
+		LOG.info("Save settings at " + file.getAbsolutePath());	
+		
+		try { //save properties
+			final OutputStream os = new FileOutputStream(file);
+			props.store(os, null);  
+		} catch (final IOException e) {
+			LOG.error("WeatherDataCollector settings could not be saved.", e);
+		}
     }
     
     public static void main(final String[] args) {
