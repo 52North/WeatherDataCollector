@@ -52,7 +52,7 @@ public class MuensterwetterCollector {
         final Properties props = loadProperties(configStream);
 
         final Timer timer = new Timer("52north-timer");
-        timer.scheduleAtFixedRate(new DataCollectionTask(new MuensterwetterRealTimeParser(props)),
+        timer.scheduleAtFixedRate(new DataCollectionTask(new MuensterwetterRealTimeCollector(props)),
         		delay,
         		getPeriod(props));
         

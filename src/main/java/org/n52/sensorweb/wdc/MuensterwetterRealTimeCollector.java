@@ -41,7 +41,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MuensterwetterRealTimeParser implements DataCollector {
+public class MuensterwetterRealTimeCollector implements DataCollector {
 	
 	/**
 	 * 
@@ -88,7 +88,7 @@ public class MuensterwetterRealTimeParser implements DataCollector {
     
     private static final String DATA_LAST_TIME= "DATA_last_time";
 
-    private static Logger LOG = LoggerFactory.getLogger(MuensterwetterRealTimeParser.class);
+    private static Logger LOG = LoggerFactory.getLogger(MuensterwetterRealTimeCollector.class);
     
     protected URL dataUrl;
 
@@ -102,7 +102,7 @@ public class MuensterwetterRealTimeParser implements DataCollector {
 
 	private final SimpleDateFormat parsingSdf;
 
-    public MuensterwetterRealTimeParser(final Properties props) {
+    public MuensterwetterRealTimeCollector(final Properties props) {
         this.props = props;
         
         try {
@@ -385,7 +385,7 @@ public class MuensterwetterRealTimeParser implements DataCollector {
 
     @Override
 	public String toString() {
-        return "MuensterwetterRealTimeParser [interval=" + intervalMillis + ", dataUrl=" + dataUrl + "]";
+        return "MuensterwetterRealTimeCollector [interval=" + intervalMillis + ", dataUrl=" + dataUrl + "]";
     }
 
 }
