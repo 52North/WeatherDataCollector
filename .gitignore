@@ -5,5 +5,5 @@ target
 .settings
 META-INF
 lastTime.52n
+*.log
 *.csv
-logs

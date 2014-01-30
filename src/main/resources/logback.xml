@@ -2,7 +2,7 @@
 
 	<!-- refer to http://logback.qos.ch/manual/appenders.html -->
 
-	<property name="logFile" value="logs/muenster-weather-data-collector" />
+	<property name="logFile" value="WeatherDataCollector" />
 
 	<!-- 
 		the following assumptions are made by the Adminstrator:
