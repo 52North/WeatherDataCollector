@@ -35,8 +35,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import org.n52.sensorweb.wdc.DataCollector;
 import org.slf4j.Logger;
@@ -51,6 +54,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	private static final String LAST_TIME_FILE = "lastTime.52n";
 
 	private static final String DATA_FIELD_TIME = "DATA_FILE_time";
+	
+	private static final String DATA_FIELD_TIME_ZONE = "DATA_FILE_timeZone";
 
     private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
@@ -238,7 +243,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	private MuensterwetterDataset getData(final Date lastTime) {
         final MuensterwetterDataset data = new MuensterwetterDataset();
 
-        getTimestampe(data);
+        getTimestamp(data);
         // skip requesting if data is not new
         if (!data.getTime().after(lastTime)) {
         	return data;
@@ -350,10 +355,24 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		return Double.parseDouble(s);
 	}
 
-	private void getTimestampe(final MuensterwetterDataset data) {
+	private void getTimestamp(final MuensterwetterDataset data) {
 		final String timeUrl = dataUrl + props.getProperty(DATA_FIELD_TIME);
+		final String timeZoneUrl = dataUrl + props.getProperty(DATA_FIELD_TIME_ZONE);
         try {
             final String t = HttpUtil.downloadFile(new URL(timeUrl));
+            
+            final String tzId = HttpUtil.downloadFile(new URL(timeZoneUrl));
+            
+            final List<String> tzIds = Arrays.asList(TimeZone.getAvailableIDs());
+            
+            if (tzIds.contains(tzId)) {
+            	parsingSdf.setTimeZone(TimeZone.getTimeZone(tzId));
+            } 
+            else if (tzId != null) {
+            	LOG.info("Timezone id '{}' is not supported by Java. Please check "
+            			+ "'http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html'.",
+            			tzId);
+            }
 
             final Date d = parsingSdf.parse(t);
             data.setTime(d);
