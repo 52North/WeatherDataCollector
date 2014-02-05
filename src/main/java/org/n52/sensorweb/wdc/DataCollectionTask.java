@@ -25,6 +25,7 @@
 package org.n52.sensorweb.wdc;
 
 import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ public class DataCollectionTask extends TimerTask {
     private static Logger LOG = LoggerFactory.getLogger(DataCollectionTask.class);
 
     private final DataCollector dataCollector;
+    
+    private static final ReentrantLock oneCollectorLock = new ReentrantLock(true);
 
     public DataCollectionTask(final DataCollector checkerP) {
         dataCollector = checkerP;
@@ -42,12 +45,17 @@ public class DataCollectionTask extends TimerTask {
     @Override
     public void run() {
         LOG.info("*** Run dataCollector {}", dataCollector);
+		 // used to sync access to lastUsedDateFile and to not have more than one collector at a time.
+        oneCollectorLock.lock();
 
         // TODO here we should handle the file writing and appending on a global level
-        
-        dataCollector.collectWeatherData();
-
-        LOG.info("*** Ran dataCollector. Next run in '{}' minutes.",dataCollector.getParseIntervalMillis()/60000);
+        try {
+        	dataCollector.collectWeatherData();
+        	LOG.info("*** Ran dataCollector. Next run in '{}' minutes.",dataCollector.getParseIntervalMillis()/60000);
+        } 
+        finally {
+        	oneCollectorLock.unlock();
+        }
     }
 
     @Override
