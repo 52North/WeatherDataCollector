@@ -43,7 +43,9 @@ public class DataCollectionTask extends TimerTask {
     public void run() {
         LOG.info("*** Run dataCollector {}", dataCollector);
 
-        dataCollector.parse();
+        // TODO here we should handle the file writing and appending on a global level
+        
+        dataCollector.collectWeatherData();
 
         LOG.info("*** Ran dataCollector. Next run in '{}' minutes.",dataCollector.getParseIntervalMillis()/60000);
     }

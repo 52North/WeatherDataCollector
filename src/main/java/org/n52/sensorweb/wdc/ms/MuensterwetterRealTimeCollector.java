@@ -22,7 +22,7 @@
  * visit the Free Software Foundation web page, http://www.fsf.org.
  */
 
-package org.n52.sensorweb.wdc;
+package org.n52.sensorweb.wdc.ms;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,14 +38,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+import org.n52.sensorweb.wdc.DataCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO move all file CSV file handling code and constants to DataCollectionTask class and return only a new Dataset
+
 public class MuensterwetterRealTimeCollector implements DataCollector {
 	
-	/**
-	 * 
-	 */
 	private static final String DATE_FORMAT_data_file_extension = "DATE_FORMAT_data_file_extension";
 
 	private static final String LAST_TIME_FILE = "lastTime.52n";
@@ -96,31 +96,14 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
     
     protected URL dataUrl;
 
-    private final long intervalMillis;
+    private long intervalMillis;
 
-    private Date lastrun;
+	private Properties props;
 
-    private ParsingResult parsingResult;
-
-	private final Properties props;
-
-	private final SimpleDateFormat parsingSdf;
-
-    public MuensterwetterRealTimeCollector(final Properties props) {
-        this.props = props;
-        
-        try {
-            dataUrl = new URL(this.props.getProperty(DATA_URL));
-        } catch (final MalformedURLException e) {
-            LOG.error("Exception thrown: ",e);
-        }
-
-        intervalMillis = Long.parseLong(this.props.getProperty(DATA_INTERVAL_MIN)) * 60 * 1000;
-        parsingSdf = new SimpleDateFormat(this.props.getProperty(DATE_FORMAT_TIME_FILE));
-    }
+	private SimpleDateFormat parsingSdf;
 
     @Override
-	public void parse() {
+	public void collectWeatherData() {
         LOG.info("** Parsing " + toString());
 
         final Date lastTimeOfMeasurement = getLastTimeOfMeasurement();
@@ -219,7 +202,6 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 			bw.newLine();
 			bw.write(dataset.toCSVString(parsingSdf));
 			bw.flush();
-			bw.close();
 		}
 		catch (final IOException e) {
 			LOG.error("Could not append new line '{}' to CSV file '{}' in folder '{}'. Enable log level debug to see more details.",
@@ -238,7 +220,6 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 				BufferedWriter bw = new BufferedWriter(fw);){
 			bw.write(new MuensterwetterDataset().getCSVHeader());
 			bw.flush();
-			bw.close();
 		} catch (final IOException e) {
 			// TODO Auto-generated catch block generated on 25.11.2013 around 11:34:15
 			LOG.error("Exception thrown: {}", e.getMessage(), e);
@@ -390,14 +371,25 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
     }
 
     @Override
-	public String getStatus() {
-        return "Last run was at " + lastrun + ": " + parsingResult;
-    }
-
-
-    @Override
 	public String toString() {
         return "MuensterwetterRealTimeCollector [interval=" + intervalMillis + ", dataUrl=" + dataUrl + "]";
     }
+
+	@Override
+	public void setProperties(final Properties configuration) {
+		props = configuration;
+	}
+
+	@Override
+	public void init() {
+		try {
+            dataUrl = new URL(props.getProperty(DATA_URL));
+        } catch (final MalformedURLException e) {
+            LOG.error("Exception thrown: ",e);
+        }
+
+        intervalMillis = Long.parseLong(props.getProperty(DATA_INTERVAL_MIN)) * 60 * 1000;
+        parsingSdf = new SimpleDateFormat(props.getProperty(DATE_FORMAT_TIME_FILE));
+	}
 
 }

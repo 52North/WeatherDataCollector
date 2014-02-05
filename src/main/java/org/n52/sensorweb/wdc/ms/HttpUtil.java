@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA or
  * visit the Free Software Foundation web page, http://www.fsf.org.
  */
-package org.n52.sensorweb.wdc;
+package org.n52.sensorweb.wdc.ms;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,9 +55,6 @@ public class HttpUtil {
            }
 
            final String s = bout.toString(DOWNLOAD_CHARSET);
-
-           bout.close();
-           is.close();
 
            return s;
        } catch (final IOException e) {

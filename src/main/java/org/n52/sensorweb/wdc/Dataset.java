@@ -21,34 +21,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA or
  * visit the Free Software Foundation web page, http://www.fsf.org.
  */
-
 package org.n52.sensorweb.wdc;
 
-import java.util.Properties;
+import java.text.SimpleDateFormat;
 
-public interface DataCollector {
-    
-    /**
-     * Collects the weather data
-     */
-	// TODO this should return a Dataset object
-    void collectWeatherData();
+/**
+ * A data set contains the measurements of certain values with the same 
+ * timestamp. In terms of tables or data bases this represents one row.
+ * It can be translated to an easy to append to CSV files 
+ * {@link String}. 
+ * 
+ */
+public interface Dataset {
 
-    long getParseIntervalMillis();
-    
-    /**
-     * Sets the Configuration properties for this {@link DataCollector} for 
-     * providing the required configuration settings contained in the global
-     * config.properties file of this application.
-     * 
-     * @param configuration
-     */
-    void setProperties(Properties configuration);
-    
-    /**
-     * Initializes the {@link DataCollector}. Is called after 
-     * {@link #setProperties(Properties)} in {@link WeatherDataCollector#init()}.
-     */
-    void init();
+	/**
+	 * Returns the data of this {@link Dataset} as a {@link String} matching 
+	 * the header definition provided by {@link #getCSVHeader()}.
+	 * 
+	 * @param timestampFormat a {@link SimpleDateFormat} for formatting the 
+	 * 				timestamp of this data set.
+	 * 
+	 * @return a {@link String} representation of this data set
+	 */
+	String toCSVString(SimpleDateFormat timestampFormat);
+
+	/**
+	 * Returns the CSV file header for this data set.
+	 * 
+	 * @return a {@link String} with the CSV file header.
+	 */
+	String getCSVHeader();
 
 }

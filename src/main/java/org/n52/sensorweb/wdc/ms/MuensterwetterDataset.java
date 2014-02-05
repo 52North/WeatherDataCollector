@@ -22,14 +22,20 @@
  * visit the Free Software Foundation web page, http://www.fsf.org.
  */
 
-package org.n52.sensorweb.wdc;
+package org.n52.sensorweb.wdc.ms;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MuensterwetterDataset {
+import org.n52.sensorweb.wdc.Dataset;
 
-    private double temperature;
+public class MuensterwetterDataset implements Dataset {
+
+	private static final String CSV_HEADER = "timestamp,temperature,relativeHumidity,windSpeedMperSec,windSpeedKmh,"
+			+ "windSpeedBft,windDirectionDegree,windDirection,windMaxGust,"
+			+ "airPressure,visibility,weatherCode,weatherCodeText,globalRadiation";
+
+	private double temperature;
 
     private double relativeHumidity;
 
@@ -119,7 +125,8 @@ public class MuensterwetterDataset {
         windMaxGust = windMaxGustP;
     }
 
-   	public String toCSVString(final SimpleDateFormat sdf){
+   	@Override
+	public String toCSVString(final SimpleDateFormat sdf){
 		return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
 				sdf.format(time),
 				temperature,
@@ -137,10 +144,9 @@ public class MuensterwetterDataset {
 				globalRadiation);
 	}
 
+	@Override
 	public String getCSVHeader(){
-		return "timestamp,temperature,relativeHumidity,windSpeedMperSec,windSpeedKmh,"
-				+ "windSpeedBft,windDirectionDegree,windDirection,windMaxGust,"
-				+ "airPressure,visibility,weatherCode,weatherCodeText,globalRadiation";
+		return CSV_HEADER;
 	}
 
 	@Override

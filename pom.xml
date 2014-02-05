@@ -73,7 +73,7 @@
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.n52.sensorweb.wdc.MuensterwetterCollector</mainClass>
+                            <mainClass>org.n52.sensorweb.wdc.WeatherDataCollector</mainClass>
                         </manifest>
                         <manifestEntries>
                             <build-time>${timestamp}</build-time>

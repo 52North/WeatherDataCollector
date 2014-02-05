@@ -41,7 +41,7 @@ import java.util.jar.Manifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MuensterwetterCollector {
+public class WeatherDataCollector {
 
 	private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
@@ -52,20 +52,35 @@ public class MuensterwetterCollector {
 	private static final String FILE_NAME = "config.properties";
 
 	private static final String INTERNAL_FILE_PATH = "/";
+	
+	private static final String COLLECTOR_IMPLEMENTATION = "COLLECTOR_IMPLEMENTATION";
 
-    private static Logger LOG = LoggerFactory.getLogger(MuensterwetterCollector.class);
+    private static Logger LOG = LoggerFactory.getLogger(WeatherDataCollector.class);
 
 	private final Properties props = new Properties();
 
     public void init(){
         loadProperties();
 
-        final Timer timer = new Timer("52north-timer");
-        timer.scheduleAtFixedRate(new DataCollectionTask(new MuensterwetterRealTimeCollector(props)),
+        final Timer timer = new Timer("52n-wdc-timer");
+        final DataCollector collector;
+        try{
+        	collector = DataCollector.class.cast(Class.forName(props.getProperty(COLLECTOR_IMPLEMENTATION)).newInstance());
+        } catch(final InstantiationException e){
+            throw new IllegalStateException(e);
+        } catch(final IllegalAccessException e){
+            throw new IllegalStateException(e);
+        } catch(final ClassNotFoundException e){
+            throw new IllegalStateException(e);
+        }
+        collector.setProperties(props);
+        collector.init();
+        
+        timer.scheduleAtFixedRate(new DataCollectionTask(collector),
         		delay,
         		getPeriod(props));
         
-        LOG.info("*** Initialized MuensterwetterCollector ***");
+        LOG.info("*** Initialized WeatherDataCollector ***");
     }
 
 	private int getPeriod(final Properties props)
@@ -135,7 +150,7 @@ public class MuensterwetterCollector {
     
     public static void main(final String[] args) {
     	logApplicationMetadata();
-    	new MuensterwetterCollector().init();
+    	new WeatherDataCollector().init();
     }
     
     /**
