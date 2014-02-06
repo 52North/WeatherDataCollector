@@ -2,8 +2,7 @@ WeatherDataCollector
 ====================
 
 The WeatherDataCollector (WDC) collects weather data from remote sites and translates the received data into a
-format that can be used with the 52°North SOS-Importer to be pushed into any running Sensor Observation Service
-instance.
+format that can be used with the [https://wiki.52north.org/bin/view/SensorWeb/SosImporter](52°North SOS-Importer) to be pushed into any running [https://wiki.52north.org/bin/view/SensorWeb/SensorObservationService](Sensor Observation Service) instance.
 
 
 ## Development
@@ -24,7 +23,7 @@ version will be written to this location for enabling configuration at runtime.
 
 ## License
 
-OSS is published under Apache Software License, Version 2.0.
+WeatherDataCollector is published under Apache Software License, Version 2.0.
 
 ### Java Libraries
 
