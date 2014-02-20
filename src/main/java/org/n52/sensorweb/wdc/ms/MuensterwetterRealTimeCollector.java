@@ -48,18 +48,18 @@ import org.slf4j.LoggerFactory;
 // TODO move all file CSV file handling code and constants to DataCollectionTask class and return only a new Dataset
 
 public class MuensterwetterRealTimeCollector implements DataCollector {
-	
+
 	private static final String DATE_FORMAT_data_file_extension = "DATE_FORMAT_data_file_extension";
 
 	private static final String LAST_TIME_FILE = "lastTime.52n";
 
 	private static final String DATA_FIELD_TIME = "DATA_FILE_time";
-	
+
 	private static final String DATA_FIELD_TIME_ZONE = "DATA_FILE_timeZone";
 
     private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
-    private static final String DATA_URL = "DATA_URL";
+    protected static final String DATA_URL = "DATA_URL";
 
     private static final String DATA_FIELD_AIR_TEMP = "DATA_FILE_airTemperature";
 
@@ -88,17 +88,17 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
     private static final String DATA_FIELD_GLOBAL_RADIATION = "DATA_FILE_globalRadiation";
 
     private static final String DATE_FORMAT_TIME_FILE = "DATE_FORMAT_time_file";
-    
+
     private static final String OUTPUT_FILENAME = "OUTPUT_filename";
-    
+
     private static final String DATA_LAST_TIME= "DATA_last_time";
 
 	private static final String OUTPUT_FOLDER = "OUTPUT_folder";
-	
+
 	private static final String LAST_TIME_FILE_FOLDER = "LAST_TIME_FILE_folder";
 
     private static Logger LOG = LoggerFactory.getLogger(MuensterwetterRealTimeCollector.class);
-    
+
     protected URL dataUrl;
 
     private long intervalMillis;
@@ -169,7 +169,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		try {
 			lastTime = parsingSdf.parse(lastTimestamp);
 		} catch (final ParseException e) {
-			LOG.error("LastTimestamp '{}' could not be parsed to a date. Current value '{}'. Error message: '{}' (enable debug level logging for more details). Default value 1970-01-01 will be used",
+			LOG.error("LastTimestamp '{}' could not be parsed to a date. Current value '{}'. Error message: '{}' (enable debug level logging for more details). Default value 1970-01-01 will be used.",
 					DATA_LAST_TIME,
 					lastTimestamp,
 					e.getMessage());
@@ -186,14 +186,14 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		// 1.1 create file name
 		final String fileName = getFileName(dataset.getTime());
 		final File outputFile = new File(fileName);
-		
+
 		// 1.2 check if file exists -> if not => create new file
 		if (!outputFile.exists()) {
 			try {
 				outputFile.createNewFile();
 				writeCSVHeader(outputFile);
 			} catch (final IOException e) {
-				LOG.error("CSV output file '{}' could not be created. Aborting storing of parsed values: {}. Error Message: {} (enable debug level to see exception).", 
+				LOG.error("CSV output file '{}' could not be created. Aborting storing of parsed values: {}. Error Message: {} (enable debug level to see exception).",
 						outputFile.getAbsolutePath(),
 						dataset,
 						e.getMessage());
@@ -201,7 +201,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 				return false;
 			}
 		}
-		
+
 		// 2 append new line
 		try (final BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile,true))){
 			bw.newLine();
@@ -243,12 +243,12 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	private MuensterwetterDataset getData(final Date lastTime) {
         final MuensterwetterDataset data = new MuensterwetterDataset();
 
-        getTimestamp(data);
+        getTimestamp(data, lastTime);
         // skip requesting if data is not new
         if (!data.getTime().after(lastTime)) {
         	return data;
         }
-        
+
         // 2m above ground
         final String airTempUrl = dataUrl + props.getProperty(DATA_FIELD_AIR_TEMP);
         try {
@@ -303,7 +303,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
         final String windDirectionUrl = dataUrl + props.getProperty(DATA_FIELD_WIND_DIR);
         try {
-            data.setWindDirection(HttpUtil.downloadFile(new URL(windDirectionUrl)));
+            data.setWindDirection(downloadFile(windDirectionUrl));
         } catch (final MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
         }
@@ -324,7 +324,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
         final String visibilityUrl = dataUrl + props.getProperty(DATA_FIELD_VISIBILITY);
         try {
-            final double d = Double.parseDouble(HttpUtil.downloadFile(new URL(visibilityUrl)).replaceAll("[^\\d]", ""));
+            final double d = Double.parseDouble(downloadFile(visibilityUrl).replaceAll("[^\\d]", ""));
             data.setVisibility(d);
         } catch (final MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
@@ -332,7 +332,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
         final String weatherCodeUrl = dataUrl + props.getProperty(DATA_FIELD_WEATHER_CODE);
         try {
-            final String s = HttpUtil.downloadFile(new URL(weatherCodeUrl));
+            final String s = downloadFile(weatherCodeUrl);
             data.setWeatherCode(s);
         } catch (final MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
@@ -340,7 +340,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
         final String weatherCodeDescrUrl = dataUrl + props.getProperty(DATA_FIELD_WEATHER_CODE_TEXT_DE);
         try {
-            final String s = HttpUtil.downloadFile(new URL(weatherCodeDescrUrl));
+            final String s = downloadFile(weatherCodeDescrUrl);
             data.setWeatherCodeText(s);
         } catch (final MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
@@ -350,38 +350,46 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
     }
 
 	private double getDoubleValueFromUrl(final String airTempUrl) throws MalformedURLException {
-		String s = HttpUtil.downloadFile(new URL(airTempUrl));
+		String s = downloadFile(airTempUrl);
 		s = s.replace(",", ".");
 		return Double.parseDouble(s);
 	}
 
-	private void getTimestamp(final MuensterwetterDataset data) {
+	private void getTimestamp(final MuensterwetterDataset data, final Date lastTime) {
 		final String timeUrl = dataUrl + props.getProperty(DATA_FIELD_TIME);
 		final String timeZoneUrl = dataUrl + props.getProperty(DATA_FIELD_TIME_ZONE);
         try {
-            final String t = HttpUtil.downloadFile(new URL(timeUrl));
-            
-            final String tzId = HttpUtil.downloadFile(new URL(timeZoneUrl));
-            
+            final String t = downloadFile(timeUrl);
+
+            final String tzId = downloadFile(timeZoneUrl);
+
             final List<String> tzIds = Arrays.asList(TimeZone.getAvailableIDs());
-            
+
             if (tzIds.contains(tzId)) {
             	parsingSdf.setTimeZone(TimeZone.getTimeZone(tzId));
-            } 
+            }
             else if (tzId != null) {
             	LOG.info("Timezone id '{}' is not supported by Java. Please check "
             			+ "'http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html'.",
             			tzId);
             }
-
+            if (t == null || t.isEmpty()) {
+            	LOG.error("Timestamp string '{}' could not be parsed. Stop this collection run",t);
+            	// work around to skip processing because the timestamp of the dataset is not newer than last time
+            	data.setTime(lastTime);
+            }
             final Date d = parsingSdf.parse(t);
             data.setTime(d);
-            
+
         } catch (final MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
         } catch (final ParseException e) {
             LOG.error("Exception thrown: ",e);
         }
+	}
+
+	protected String downloadFile(final String timeUrl) throws MalformedURLException {
+		return HttpUtil.downloadFile(new URL(timeUrl));
 	}
 
     @Override

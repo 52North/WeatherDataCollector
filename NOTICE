@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This project includes: 
+  Hamcrest All under New BSD License
+  JUnit under Common Public License Version 1.0
   Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   SLF4J API Module under MIT License
