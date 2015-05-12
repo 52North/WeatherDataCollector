@@ -23,7 +23,6 @@
  */
 package org.n52.sensorweb.wdc;
 
-import java.text.SimpleDateFormat;
 
 /**
  * A data set contains the measurements of certain values with the same 
@@ -38,12 +37,14 @@ public interface Dataset {
 	 * Returns the data of this {@link Dataset} as a {@link String} matching 
 	 * the header definition provided by {@link #getCSVHeader()}.
 	 * 
-	 * @param timestampFormat a {@link SimpleDateFormat} for formatting the 
-	 * 				timestamp of this data set.
+	 * All timestamps MUST be in ISO8601 format:
+	 * 
+	 *   <center><code>yyyy-MM-ddTHH:mm:ss.SSSZZ</code></center>
+	 * 
 	 * 
 	 * @return a {@link String} representation of this data set
 	 */
-	String toCSVString(SimpleDateFormat timestampFormat);
+	String toCSVString();
 
 	/**
 	 * Returns the CSV file header for this data set.

@@ -14,6 +14,7 @@ limitations under the License.
 
 This project includes: 
   Hamcrest All under New BSD License
+  Joda-Time under Apache 2
   JUnit under Common Public License Version 1.0
   Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
