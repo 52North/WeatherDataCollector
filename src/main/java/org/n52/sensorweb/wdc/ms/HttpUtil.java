@@ -42,7 +42,8 @@ public class HttpUtil {
 	
     /**
      * @param url the URL to the file to download
-     * @return the content of the file as String. An empty String will be returned, if anything bad happened.
+     * @return the content of the file as trimmed String. An empty String will be returned, if anything bad happened.
+     * @see String#trim()
      */
     public static String downloadFile(final URL url) {
     	try (final InputStream is = url.openStream();
@@ -56,7 +57,7 @@ public class HttpUtil {
 
            final String s = bout.toString(DOWNLOAD_CHARSET);
 
-           return s;
+           return s.trim();
        } catch (final IOException e) {
            LOG.error("Could not open stream to " + url.toString(), e);
            return "";
