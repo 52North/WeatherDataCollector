@@ -48,6 +48,10 @@ import org.slf4j.LoggerFactory;
 // TODO move all file CSV file handling code and constants to DataCollectionTask class and return only a new Dataset
 
 public class MuensterwetterRealTimeCollector implements DataCollector {
+	
+	private static long run = 1;
+
+	private static final long MILLIS_PER_MINUTE = 60 * 1000;
 
 	private static final String DATE_FORMAT_data_file_extension = "DATE_FORMAT_data_file_extension";
 
@@ -111,7 +115,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
     @Override
 	public void collectWeatherData() {
-        LOG.info("** Parsing " + toString());
+        LOG.info("** START parsing ** Run #" + getRun());
 
         final Date lastTimeOfMeasurement = getLastTimeOfMeasurement();
 		final MuensterwetterDataset data = getData(lastTimeOfMeasurement);
@@ -128,11 +132,20 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
         			parsingSdf.format(new Date()));
         }
 
-        LOG.info("** Done " + toString());
+        LOG.info("** DONE  parsing ** Run #" + getAndIncrementRun());
     }
 
-	private void storeLastTime(final Date time)
-	{
+	private synchronized String getAndIncrementRun() {
+		String tmp = Long.toString(run);
+		run++;
+		return tmp;
+	}
+
+	private synchronized String getRun() {
+		return Long.toString(run);
+	}
+
+	private void storeLastTime(final Date time)	{
 		try (
 				FileWriter fw = new FileWriter(getLastTimeFile());
 				BufferedWriter bw = new BufferedWriter(fw);
@@ -415,7 +428,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
             LOG.error("Exception thrown: ",e);
         }
 
-        intervalMillis = Long.parseLong(props.getProperty(DATA_INTERVAL_MIN)) * 60 * 1000;
+        intervalMillis = Long.parseLong(props.getProperty(DATA_INTERVAL_MIN)) * MILLIS_PER_MINUTE;
         parsingSdf = new SimpleDateFormat(props.getProperty(DATE_FORMAT_TIME_FILE));
 	}
 
