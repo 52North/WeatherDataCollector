@@ -56,6 +56,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 	private static final String DATA_FIELD_TIME = "DATA_FILE_time";
 
 	private static final String DATA_FIELD_TIME_ZONE = "DATA_FILE_timeZone";
+	
+	private static final String DATA_FIELD_TIME_ZONE_PARSE_PATTERN = "DATA_FIELD_TIME_ZONE_PARSE_PATTERN";
 
     private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
@@ -357,7 +359,9 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
         try {
             final String t = downloadFile(timeUrl);
 
-            final String tzId = downloadFile(timeZoneUrl);
+            String tzId = downloadFile(timeZoneUrl);
+            tzId = String.format(props.getProperty(DATA_FIELD_TIME_ZONE_PARSE_PATTERN),
+            		tzId.replaceAll("[\\(\\)UTC]",""));
 
             final List<String> tzIds = Arrays.asList(TimeZone.getAvailableIDs());
 
