@@ -59,7 +59,7 @@ public class WeatherDataCollector {
 
 	private final Properties props = new Properties();
 
-    public void init(){
+    public void init() {
         loadProperties();
 
         final Timer timer = new Timer("52n-wdc-timer");
@@ -83,8 +83,7 @@ public class WeatherDataCollector {
         LOG.info("*** Initialized WeatherDataCollector ***");
     }
 
-	private int getPeriod(final Properties props)
-	{
+	private int getPeriod(final Properties props) {
 		try {
 			final int periodInMinutes = Integer.parseInt(props.getProperty(DATA_INTERVAL_MIN, "4"));
 			final int periodInMillis = 1000 * 60 * periodInMinutes;
@@ -97,7 +96,6 @@ public class WeatherDataCollector {
 	}
 
     private void loadProperties() {
-    	
     	try {
 			InputStream is;
 			String filePath = EXTERNAL_FILE_PATH + FILE_NAME;
@@ -116,7 +114,6 @@ public class WeatherDataCollector {
 				LOG.info("Load settings from " + file);
 				is = new FileInputStream(file);
 			}
-			 
 			props .load(is);     
 		} catch (final FileNotFoundException e) {
 			LOG.error("WeatherDataCollector settings not found.", e);
