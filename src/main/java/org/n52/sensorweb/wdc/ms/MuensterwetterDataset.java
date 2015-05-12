@@ -25,8 +25,8 @@
 package org.n52.sensorweb.wdc.ms;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
+import org.joda.time.DateTime;
 import org.n52.sensorweb.wdc.Dataset;
 
 public class MuensterwetterDataset implements Dataset {
@@ -61,7 +61,7 @@ public class MuensterwetterDataset implements Dataset {
 
     private double globalRadiation;
 
-    private Date time;
+    private DateTime time;
 
     public MuensterwetterDataset() {}
 
@@ -105,11 +105,11 @@ public class MuensterwetterDataset implements Dataset {
         globalRadiation = globalRadiationP;
     }
 
-    public Date getTime() {
+    public DateTime getTime() {
         return time;
     }
 
-    public void setTime(final Date timeP) {
+    public void setTime(final DateTime timeP) {
         time = timeP;
     }
 
@@ -126,9 +126,9 @@ public class MuensterwetterDataset implements Dataset {
     }
 
    	@Override
-	public String toCSVString(final SimpleDateFormat sdf){
+	public String toCSVString(){
 		return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-				sdf.format(time),
+				time.toString(),
 				temperature,
 				relativeHumidity,
 				windSpeedMperSec,

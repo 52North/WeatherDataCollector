@@ -33,14 +33,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 
+import javax.swing.text.DateFormatter;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.n52.sensorweb.wdc.DataCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,16 +114,16 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
 	private Properties props;
 
-	private SimpleDateFormat parsingSdf;
+	private DateTimeFormatter dateTimeFormatter;
 
     @Override
 	public void collectWeatherData() {
         LOG.info("** START parsing ** Run #" + getRun());
 
-        final Date lastTimeOfMeasurement = getLastTimeOfMeasurement();
+        final DateTime lastTimeOfMeasurement = getLastTimeOfMeasurement();
 		final MuensterwetterDataset data = getData(lastTimeOfMeasurement);
 
-        if (data.getTime().after(lastTimeOfMeasurement)) {
+        if (data.getTime().isAfter(lastTimeOfMeasurement)) {
         	if (appendData(data)) {
         		storeLastTime(data.getTime());
         	} else {
@@ -128,8 +131,8 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
         	}
         } else {
         	LOG.info("No newer data available. Last timestamp: '{}'. Time now: '{}'",
-        			parsingSdf.format(lastTimeOfMeasurement),
-        			parsingSdf.format(new Date()));
+        			lastTimeOfMeasurement.toString(),
+        			DateTime.now(DateTimeZone.UTC));
         }
 
         LOG.info("** DONE  parsing ** Run #" + getAndIncrementRun());
@@ -145,14 +148,16 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		return Long.toString(run);
 	}
 
-	private void storeLastTime(final Date time)	{
+	private void storeLastTime(final DateTime time)	{
 		try (
 				FileWriter fw = new FileWriter(getLastTimeFile());
 				BufferedWriter bw = new BufferedWriter(fw);
 				){
-			bw.write(parsingSdf.format(time));
+			bw.write(time.toString());
 		} catch (final IOException e) {
-			LOG.error("Could not save timestamp '{}' of last data set to file '{}'. Switch log level to debug to see the exception.", parsingSdf.format(time),getLastTimeFile());
+			LOG.error("Could not save timestamp '{}' of last data set to file '{}'. Switch log level to debug to see the exception.",
+					time.toString(),
+					getLastTimeFile());
 			LOG.debug("Exception thrown!",e);
 		}
 	}
@@ -161,7 +166,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		return props.getProperty(LAST_TIME_FILE_FOLDER, "." + File.separatorChar) + LAST_TIME_FILE;
 	}
 
-	private Date getLastTimeOfMeasurement() {
+	private DateTime getLastTimeOfMeasurement() {
 		String lastTimestamp = "";
 		// get last record from data file
 		try (
@@ -176,20 +181,20 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		}
 		if (lastTimestamp == null || lastTimestamp.isEmpty()) {
 			 // this might result in a bug when dealing with data from before 1970-01-01
-			return new Date(0);
+			return new DateTime(0).toDateTime(DateTimeZone.UTC);
 		}
 		// get date from last line
-		Date lastTime;
+		DateTime lastTime;
 		try {
-			lastTime = parsingSdf.parse(lastTimestamp);
-		} catch (final ParseException e) {
-			LOG.error("LastTimestamp '{}' could not be parsed to a date. Current value '{}'. Error message: '{}' (enable debug level logging for more details). Default value 1970-01-01 will be used.",
+			lastTime = new DateTime(lastTimestamp).toDateTime(DateTimeZone.UTC);
+		} catch (final IllegalArgumentException|UnsupportedOperationException e) {
+			LOG.error("LastTimestamp '{}' could not be parsed to a jodatime...DateTime. Current value '{}'. Error message: '{}' (enable debug level logging for more details). Default value 1970-01-01 will be used.",
 					DATA_LAST_TIME,
 					lastTimestamp,
 					e.getMessage());
 			LOG.debug("Exception", e);
 			 // this might result in a bug when dealing with data from before 1970-01-01
-			lastTime = new Date(0);
+			lastTime = new DateTime(0).toDateTime(DateTimeZone.UTC);
 		}
 		return lastTime;
 	}
@@ -218,12 +223,12 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		// 2 append new line
 		try (final BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile,true))){
 			bw.newLine();
-			bw.write(dataset.toCSVString(parsingSdf));
+			bw.write(dataset.toCSVString());
 			bw.flush();
 		}
 		catch (final IOException e) {
 			LOG.error("Could not append new line '{}' to CSV file '{}' in folder '{}'. Enable log level debug to see more details.",
-					dataset.toCSVString(parsingSdf),
+					dataset.toCSVString(),
 					outputFile.getName(),
 					outputFile.getAbsolutePath());
 			LOG.debug("Exception thrown!",e);
@@ -243,20 +248,20 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		}
 	}
 
-	private String getFileName(final Date date)	{
-		final String fileNameDatePart = new SimpleDateFormat(props.getProperty(DATE_FORMAT_data_file_extension)).format(date);
+	private String getFileName(final DateTime date)	{
+		final String fileNameDatePart = DateTimeFormat.forPattern(props.getProperty(DATE_FORMAT_data_file_extension)).print(date);
 		final String userDefinedPrefix = props.getProperty(OUTPUT_FILENAME, "prefix_not_defined");
 		final String userDefinePath = props.getProperty(OUTPUT_FOLDER, "." + File.separatorChar);
 		final String fileName = userDefinePath + userDefinedPrefix + "_" + fileNameDatePart + ".csv";
 		return fileName;
 	}
 
-	private MuensterwetterDataset getData(final Date lastTime) {
+	private MuensterwetterDataset getData(final DateTime lastTime) {
         final MuensterwetterDataset data = new MuensterwetterDataset();
 
         getTimestamp(data, lastTime);
         // skip requesting if data is not new
-        if (!data.getTime().after(lastTime)) {
+        if (!data.getTime().isAfter(lastTime)) {
         	return data;
         }
 
@@ -366,7 +371,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 		return Double.parseDouble(s);
 	}
 
-	private void getTimestamp(final MuensterwetterDataset data, final Date lastTime) {
+	private void getTimestamp(final MuensterwetterDataset data, final DateTime lastTime) {
 		final String timeUrl = dataUrl + props.getProperty(DATA_FIELD_TIME);
 		final String timeZoneUrl = dataUrl + props.getProperty(DATA_FIELD_TIME_ZONE);
         try {
@@ -376,16 +381,20 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
             if (!tzId.isEmpty()) {
             	tzId = String.format(props.getProperty(DATA_FIELD_TIME_ZONE_PARSE_PATTERN),
             			tzId.replaceAll("[\\(\\)UTC]",""));
+            	if (tzId.contains("+")) {
+            		tzId = tzId.replace('+', '-');
+            	} else {
+            		tzId = tzId.replace('-', '+');
+            	}
             }
+            
+            DateTimeZone localZone = DateTimeZone.UTC;
 
-            final List<String> tzIds = Arrays.asList(TimeZone.getAvailableIDs());
-
-            if (tzIds.contains(tzId)) {
-            	parsingSdf.setTimeZone(TimeZone.getTimeZone(tzId));
-            }
-            else if (tzId != null) {
-            	LOG.info("Timezone id '{}' is not supported by Java. Please check "
-            			+ "'http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html'.",
+            if (DateTimeZone.getAvailableIDs().contains(tzId)) {
+            	localZone = DateTimeZone.forID(tzId);
+            } else {
+            	LOG.info("Timezone id '{}' is not supported by Jodatime. Please check "
+            			+ "'http://www.joda.org/joda-time/timezones.html'.",
             			tzId);
             }
             if (t == null || t.isEmpty()) {
@@ -393,12 +402,10 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
             	// work around to skip processing because the timestamp of the dataset is not newer than last time
             	data.setTime(lastTime);
             }
-            final Date d = parsingSdf.parse(t);
-            data.setTime(d);
+            DateTime date = dateTimeFormatter.withZone(localZone).parseDateTime(t).toDateTime(DateTimeZone.UTC);
+            data.setTime(date);
 
-        } catch (final MalformedURLException e) {
-            LOG.error("Exception thrown: ",e);
-        } catch (final ParseException e) {
+        } catch (final UnsupportedOperationException|IllegalArgumentException|MalformedURLException e) {
             LOG.error("Exception thrown: ",e);
         }
 	}
@@ -431,7 +438,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
         }
 
         intervalMillis = Long.parseLong(props.getProperty(DATA_INTERVAL_MIN)) * MILLIS_PER_MINUTE;
-        parsingSdf = new SimpleDateFormat(props.getProperty(DATE_FORMAT_TIME_FILE));
+        dateTimeFormatter = DateTimeFormat.forPattern(props.getProperty(DATE_FORMAT_TIME_FILE));
 	}
 
 }
