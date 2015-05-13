@@ -33,17 +33,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Properties;
-
-import javax.swing.text.DateFormatter;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
 import org.n52.sensorweb.wdc.DataCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +59,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
 	private static final String DATA_FIELD_TIME_ZONE = "DATA_FILE_timeZone";
 	
-	private static final String DATA_FIELD_TIME_ZONE_PARSE_PATTERN = "DATA_FIELD_TIME_ZONE_PARSE_PATTERN";
+	private static final String DATA_FILE_TIME_ZONE_PARSE_PATTERN = "DATA_FILE_TIME_ZONE_PARSE_PATTERN";
 
     private static final String DATA_INTERVAL_MIN = "DATA_INTERVAL_MIN";
 
@@ -379,7 +374,7 @@ public class MuensterwetterRealTimeCollector implements DataCollector {
 
             String tzId = downloadFile(timeZoneUrl);
             if (!tzId.isEmpty()) {
-            	tzId = String.format(props.getProperty(DATA_FIELD_TIME_ZONE_PARSE_PATTERN),
+            	tzId = String.format(props.getProperty(DATA_FILE_TIME_ZONE_PARSE_PATTERN),
             			tzId.replaceAll("[\\(\\)UTC]",""));
             	if (tzId.contains("+")) {
             		tzId = tzId.replace('+', '-');

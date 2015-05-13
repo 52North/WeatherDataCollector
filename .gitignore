@@ -6,4 +6,6 @@ target
 META-INF
 *lastTime.52n
 *.log
-*.csv
+/*.csv
+*.csv.nlf
+*csv.nlf.tsf
