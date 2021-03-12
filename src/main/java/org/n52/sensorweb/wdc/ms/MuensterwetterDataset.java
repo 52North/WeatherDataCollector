@@ -1,5 +1,5 @@
 /**
- * ﻿Copyright (C) 2013
+ * Copyright (C) 2013
  * by 52 North Initiative for Geospatial Open Source Software GmbH
  *
  * Contact: Andreas Wytzisk
@@ -23,8 +23,6 @@
  */
 
 package org.n52.sensorweb.wdc.ms;
-
-import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
 import org.n52.sensorweb.wdc.Dataset;
@@ -104,6 +102,8 @@ public class MuensterwetterDataset implements Dataset {
     public void setGlobalRadiation(final double globalRadiationP) {
         globalRadiation = globalRadiationP;
     }
+
+    //yyyy-MM-ddTHH:mm:ss.SSSZZ
 
     public DateTime getTime() {
         return time;
